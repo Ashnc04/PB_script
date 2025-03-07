@@ -1,0 +1,90 @@
+Documentation du Script PowerShell pour l'Inventaire Automatisé
+Description
+
+Ce script PowerShell est conçu pour collecter des informations sur les systèmes Windows afin de réaliser un inventaire automatisé du parc informatique. Il capture diverses métriques système et les enregistre dans un fichier CSV pour une analyse ultérieure.
+Fonctionnement
+1. Définition du fichier de sortie
+
+$outputFile = "inventaire.csv"
+
+    Objectif : Définir le nom du fichier CSV où les données collectées seront enregistrées.
+
+2. Création de l'en-tête du fichier CSV
+
+"Adresse IP,Nom d'hôte,Statut de connexion,Charge du processeur,Utilisation de la RAM,Utilisation du SWAP,Espace disque utilisé,Espace disque disponible,Système d'exploitation,Version du système d'exploitation" | Out-File -FilePath $outputFile -Encoding utf8
+
+    Objectif : Créer ou écraser le fichier CSV avec une ligne d'en-tête qui décrit les colonnes de données.
+
+3. Collecte des informations système
+Adresse IP
+
+$ipAddress = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Ethernet").IPAddress
+
+    Objectif : Obtenir l'adresse IP de la machine en utilisant Get-NetIPAddress.
+
+Nom d'hôte
+
+$hostname = hostname
+
+    Objectif : Récupérer le nom d'hôte de la machine avec la commande hostname.
+
+Statut de connexion
+
+$uptime = (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime
+
+    Objectif : Obtenir le temps d'activité du système (depuis le dernier redémarrage) avec Get-CimInstance.
+
+Charge du processeur
+
+$cpuUsage = (Get-Counter -Counter "\Processor(_Total)\% Processor Time" -SampleInterval 1 -MaxSamples 5 | Measure-Object -Property CounterValue -Average).Average
+
+    Objectif : Mesurer la charge du processeur en utilisant Get-Counter. La commande calcule la moyenne de l'utilisation du CPU sur 5 échantillons.
+
+Utilisation de la RAM
+
+$ramUsage = (Get-CimInstance -ClassName Win32_OperatingSystem).TotalVisibleMemorySize / 1MB
+
+    Objectif : Calculer l'utilisation de la RAM en Mo en utilisant Get-CimInstance.
+
+Utilisation du SWAP
+
+$swapUsage = (Get-CimInstance -ClassName Win32_PageFileUsage).CurrentUsage / 1MB
+
+    Objectif : Calculer l'utilisation du fichier d'échange (swap) en Mo en utilisant Get-CimInstance.
+
+Espace disque utilisé
+
+$diskUsed = (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3").DeviceID | ForEach-Object { (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$_'").VolumeName + ": " + (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$_'").Size }
+
+    Objectif : Déterminer l'espace disque utilisé sur les partitions en utilisant Get-CimInstance.
+
+Espace disque disponible
+
+$diskAvailable = (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3").DeviceID | ForEach-Object { (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$_'").FreeSpace }
+
+    Objectif : Déterminer l'espace disque disponible sur les partitions en utilisant Get-CimInstance.
+
+Système d'exploitation
+
+$osName = (Get-CimInstance -ClassName Win32_OperatingSystem).Caption
+
+    Objectif : Identifier le nom du système d'exploitation en utilisant Get-CimInstance.
+
+Version du système d'exploitation
+
+$osVersion = (Get-CimInstance -ClassName Win32_OperatingSystem).Version
+
+    Objectif : Obtenir la version du système d'exploitation en utilisant Get-CimInstance.
+
+4. Écriture des informations dans le fichier CSV
+
+$info = "$ipAddress,$hostname,$uptime,$cpuUsage,$ramUsage,$swapUsage,$diskUsed,$diskAvailable,$osName,$osVersion"
+$info | Out-File -FilePath $outputFile -Append -Encoding utf8
+
+    Objectif : Ajouter une ligne au fichier CSV avec les informations collectées.
+
+5. Message de fin
+
+Write-Output "Inventaire terminé. Les résultats sont enregistrés dans $outputFile."
+
+    Objectif : Informer l'utilisateur que l'inventaire est terminé et indiquer l'emplacement du fichier de sortie.
