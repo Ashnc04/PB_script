@@ -1,1 +1,91 @@
+Documentation du Script Bash pour l'Inventaire Automatisé
+Description
 
+Ce script Bash est conçu pour collecter des informations système sur les machines Linux afin de réaliser un inventaire automatisé du parc informatique. Il capture diverses métriques système et les enregistre dans un fichier CSV pour une analyse ultérieure.
+Fonctionnement
+1. Définition du fichier de sortie
+
+OUTPUT_FILE="inventaire.csv"
+
+    Objectif : Définir le nom du fichier CSV où les données collectées seront enregistrées.
+
+2. Création de l'en-tête du fichier CSV
+
+echo "Adresse IP,Nom d'hôte,Statut de connexion,Charge du processeur,Utilisation de la RAM,Utilisation du SWAP,Espace disque utilisé,Espace disque disponible,Système d'exploitation,Version du système d'exploitation" > $OUTPUT_FILE
+
+    Objectif : Créer ou écraser le fichier CSV avec une ligne d'en-tête qui décrit les colonnes de données.
+
+3. Collecte des informations système
+Adresse IP
+
+IP_ADDRESS=$(hostname -I | awk '{print $1}')
+
+    Objectif : Obtenir l'adresse IP de la machine en utilisant hostname -I et en extrayant la première adresse IP avec awk.
+
+Nom d'hôte
+
+HOSTNAME=$(hostname)
+
+    Objectif : Récupérer le nom d'hôte de la machine avec la commande hostname.
+
+Statut de connexion
+
+UPTIME=$(uptime -p)
+
+    Objectif : Obtenir le temps d'activité du système (depuis le dernier redémarrage) avec uptime -p.
+
+Charge du processeur
+
+CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+
+    Objectif : Mesurer la charge du processeur en utilisant top. La commande extrait la valeur d'inactivité du CPU et calcule la charge en pourcentage.
+
+Utilisation de la RAM
+
+RAM_USAGE=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+
+    Objectif : Calculer l'utilisation de la RAM en pourcentage en utilisant free.
+
+Utilisation du SWAP
+
+SWAP_USAGE=$(free | grep Swap | awk '{print $3/$2 * 100.0}')
+
+    Objectif : Calculer l'utilisation du SWAP en pourcentage en utilisant free.
+
+Espace disque utilisé
+
+DISK_USED=$(df / | grep / | awk '{print $5}' | sed 's/%//g')
+
+    Objectif : Déterminer l'espace disque utilisé sur la partition racine en utilisant df.
+
+Espace disque disponible
+
+DISK_AVAILABLE=$(df / | grep / | awk '{print $4}')
+
+    Objectif : Déterminer l'espace disque disponible sur la partition racine en utilisant df.
+
+Système d'exploitation
+
+OS_NAME=$(uname -o)
+
+    Objectif : Identifier le nom du système d'exploitation en utilisant uname -o.
+
+Version du système d'exploitation
+
+OS_VERSION=$(uname -r)
+
+    Objectif : Obtenir la version du système d'exploitation en utilisant uname -r.
+
+4. Écriture des informations dans le fichier CSV
+
+echo "$IP_ADDRESS,$HOSTNAME,$UPTIME,$CPU_USAGE,$RAM_USAGE,$SWAP_USAGE,$DISK_USED,$DISK_AVAILABLE,$OS_NAME,$OS_VERSION" >> $OUTPUT_FILE
+
+    Objectif : Ajouter une ligne au fichier CSV avec les informations collectées.
+
+5. Message de fin
+
+echo "Inventaire terminé. Les résultats sont enregistrés dans $OUTPUT_FILE."
+
+    Objectif : Informer l'utilisateur que l'inventaire est terminé et indiquer l'emplacement du fichier de sortie.
+
+Cette documentation explique chaque partie du script, ce qui facilitera sa compréhension et sa maintenance.
