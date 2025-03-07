@@ -100,3 +100,54 @@ for ($i = $startInt; $i -le $endInt; $i++) {
 }
 
 Write-Output "Scan terminé. Les résultats ont été enregistrés dans $csvFile"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Script PowerShell pour collecter des informations système
+
+# Nom du fichier CSV de sortie
+$outputFile = "inventaire.csv"
+
+# Créer ou écraser le fichier CSV avec l'en-tête
+"Adresse IP,Nom d'hôte,Statut de connexion,Charge du processeur,Utilisation de la RAM,Utilisation du SWAP,Espace disque utilisé,Espace disque disponible,Système d'exploitation,Version du système d'exploitation" | Out-File -FilePath $outputFile -Encoding utf8
+
+# Collecte des informations
+$ipAddress = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceAlias "Ethernet").IPAddress
+$hostname = hostname
+$uptime = (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime
+$cpuUsage = (Get-Counter -Counter "\Processor(_Total)\% Processor Time" -SampleInterval 1 -MaxSamples 5 | Measure-Object -Property CounterValue -Average).Average
+$ramUsage = (Get-CimInstance -ClassName Win32_OperatingSystem).TotalVisibleMemorySize / 1MB
+$swapUsage = (Get-CimInstance -ClassName Win32_PageFileUsage).CurrentUsage / 1MB
+$diskUsed = (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3").DeviceID | ForEach-Object { (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$_'").VolumeName + ": " + (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$_'").Size }
+$diskAvailable = (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DriveType=3").DeviceID | ForEach-Object { (Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$_'").FreeSpace }
+$osName = (Get-CimInstance -ClassName Win32_OperatingSystem).Caption
+$osVersion = (Get-CimInstance -ClassName Win32_OperatingSystem).Version
+
+# Écriture des informations dans le fichier CSV
+$info = "$ipAddress,$hostname,$uptime,$cpuUsage,$ramUsage,$swapUsage,$diskUsed,$diskAvailable,$osName,$osVersion"
+$info | Out-File -FilePath $outputFile -Append -Encoding utf8
+
+Write-Output "Inventaire terminé. Les résultats sont enregistrés dans $outputFile."
