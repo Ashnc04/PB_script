@@ -129,7 +129,7 @@ Write-Output "Scan terminé. Les résultats ont été enregistrés dans $csvFile
 # Script PowerShell pour collecter des informations système
 
 # Nom du fichier CSV de sortie
-$outputFile = "inventaire.csv"
+$outputFile = "$env:USERPROFILE\Desktop\inventaire.csv"
 
 # Créer ou écraser le fichier CSV avec l'en-tête
 "Adresse IP,Nom d'hôte,Statut de connexion,Charge du processeur,Utilisation de la RAM,Utilisation du SWAP,Espace disque utilisé,Espace disque disponible,Système d'exploitation,Version du système d'exploitation" | Out-File -FilePath $outputFile -Encoding utf8
