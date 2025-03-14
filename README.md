@@ -31,7 +31,7 @@ Collaboration
 Ce projet utilise Git pour le contrôle de version. Nous encourageons la collaboration entre les membres de l'équipe pour assurer une maîtrise globale des scripts et partager les connaissances.
 Contributeurs
 
-    Lilian Gabon
+    Lilian
     JP
     Franck
     Sasha
